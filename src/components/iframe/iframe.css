@@ -1,0 +1,10 @@
+.s-factory_iframe {
+  width: clamp(
+    100px,
+    var(--s-factory-canvas-width),
+    calc(100% - 2 * var(--s-factory-side-padding))
+  );
+  max-height: calc(100vh - 2 * var(--s-factory-side-padding));
+  background: white;
+  transition: width 0.2s ease-out;
+}

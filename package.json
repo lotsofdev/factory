@@ -1,0 +1,31 @@
+{
+  "name": "@lotsof/factory",
+  "version": "1.0.0",
+  "description": "Useful components factory UI that allows you to build and test your own components easily",
+  "type": "module",
+  "author": "Olivier Bossel <olivier.bossel@gmail.com> (https://coffeekraken.io)",
+  "license": "MIT",
+  "scripts": {
+    "dev": "tsc --watch & vite --host",
+    "build": "tsc & vite build"
+  },
+  "dependencies": {
+    "@lotsof/lit-element": "^1.0.0",
+    "@lotsof/sugar": "^1.0.0",
+    "@lotsof/sugarcss": "^1.0.0",
+    "@lotsof/advanced-select-element": "^1.0.0",
+    "@lotsof/json-schema-form": "^1.0.0",
+    "@lotsof/components": "^1.0.0",
+    "@types/json-schema": "^7.0.15",
+    "lit": "^3.1.3",
+    "typescript": "^5.4.5"
+  },
+  "exports": {
+    ".": {
+      "node": "./dist/node/_exports.js",
+      "browser": "./dist/js/_exports.js"
+    }
+  },
+  "types": "src/shared/factory.types.ts",
+  "homepage": "https://lotsof.dev"
+}

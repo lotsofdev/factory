@@ -1,0 +1,31 @@
+{
+  "name": "lotsof/factory",
+  "description": "Useful components factory UI that allows you to build and test your own components easily",
+  "version": "1.0.0",
+  "type": "library",
+  "autoload": {
+    "files": [
+      "src/php/_autoload.php"
+    ]
+  },
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Olivier Bossel",
+      "email": "olivier.bossel@gmail.com",
+      "homepage": "https://lotsof.dev"
+    }
+  ],
+  "repositories": [
+    {
+      "type": "path",
+      "url": "../sugar"
+    }
+  ],
+  "require": {
+    "php": ">=8.0",
+    "lotsof/sugar": "^1.0.0",
+    "eftec/bladeone": "^4.13",
+    "twig/twig": "^3.11"
+  }
+}

@@ -1,0 +1,34 @@
+.s-factory_components-list {
+  .s-factory_components-list-item {
+    display: flex;
+  }
+
+  .s-factory_components-list-item {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+  }
+
+  .s-factory_components-list-item-name {
+    flex-grow: 1;
+  }
+
+  .s-factory_components-list-item-engines {
+    display: flex;
+  }
+
+  .s-factory_components-list-item-engine {
+    svg {
+      font-size: 20px;
+      width: 1em;
+      height: 1em;
+    }
+  }
+
+  .s-factory_components-list-item.-active {
+    .s-factory_components-list-item-engine {
+      &.-active {
+      }
+    }
+  }
+}

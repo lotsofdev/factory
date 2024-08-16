@@ -1,0 +1,46 @@
+.s-factory_editor {
+  position: absolute;
+  top: var(--s-factory-side-padding);
+  right: var(--s-factory-side-padding);
+  bottom: var(--s-factory-side-padding);
+  width: var(--s-factory-editor-width);
+  translate: calc(100% + var(--s-factory-side-padding));
+
+  &:hover {
+    translate: 0;
+  }
+
+  .s-factory_editor-inner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    @s-scrollbar (hide);
+  }
+
+  &:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 100%;
+    width: 100px;
+    height: 100%;
+    background: transparent;
+  }
+  &:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 100%;
+    width: 100px;
+    height: 100%;
+    background: transparent;
+  }
+}
+
+.s-factory.-show-ui .s-factory_editor {
+  translate: 0;
+}

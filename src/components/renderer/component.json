@@ -1,0 +1,17 @@
+{
+  "version": "1.0.0",
+  "name": "renderer",
+  "description": "Simple renderer engine component that support blade and twig",
+  "files": [
+    "renderer.php",
+    ".gitignore",
+    "cache/blade/.gitkeep",
+    "cache/twig/.gitkeep"
+  ],
+  "composerJson": {
+    "require": {
+      "eftec/bladeone": "^4.13",
+      "twig/twig": "^3.10.3"
+    }
+  }
+}

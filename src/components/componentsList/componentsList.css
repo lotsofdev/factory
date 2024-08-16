@@ -1,0 +1,70 @@
+@import './componentsList.bare.css';
+
+.s-factory_components-list {
+  padding: s-space(10);
+
+  .s-factory_components-list-item {
+  }
+
+  .s-factory_components-list-item {
+    padding: s-space(10) s-space(10) s-space(10) s-space(30);
+    border-bottom: 1px solid s-color(main, border);
+
+    @s-radius;
+
+    &.-active {
+      background: s-color(accent, --alpha 0.2);
+    }
+
+    &:hover {
+      background: s-color(accent, --alpha 0.05);
+    }
+  }
+
+  .s-factory_components-list-item-name {
+    text-transform: uppercase;
+    font-size: s-size(13);
+    @s-transition (fast);
+  }
+
+  .s-factory_components-list-item-engines {
+    gap: s-space(10);
+  }
+
+  .s-factory_components-list-item-engine {
+    width: 30px;
+    display: flex;
+    aspect-ratio: 1;
+    background: s-color(accent, foreground);
+    align-items: center;
+    justify-content: center;
+    @s-radius;
+    @s-transition (fast);
+
+    svg [fill] {
+      fill: s-color(main, --alpha 0.3);
+      @s-transition (fast);
+    }
+    &:hover {
+      svg [fill] {
+        fill: s-color(main, --alpha 0.6);
+      }
+    }
+  }
+
+  .s-factory_components-list-item.-active {
+    .s-factory_components-list-item-name {
+      font-weight: bold;
+    }
+
+    .s-factory_components-list-item-engine {
+      &.-active {
+        background: s-color(accent);
+
+        svg [fill] {
+          fill: s-color(accent, foreground);
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,26 @@
+@import './mediaQueries.bare.css';
+
+.s-factory_media-queries {
+  .s-factory_media-queries-list {
+    gap: s-space(10);
+  }
+  .s-factory_media-queries-list-item {
+    padding: s-space(5) s-space(10) 0 s-space(10);
+    cursor: pointer;
+    @s-radius;
+
+    &.-active {
+      background: s-color(accent);
+      color: s-color(accent, foreground);
+    }
+
+    &:hover:not(.-active) {
+      background: s-color(accent, --alpha 0.1);
+    }
+  }
+  .s-factory_media-queries-list-item-name {
+    text-transform: uppercase;
+    font-size: s-size(13);
+    letter-spacing: 0.1em;
+  }
+}

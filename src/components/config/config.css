@@ -1,0 +1,7 @@
+:root {
+  --s-factory-side-padding: s-space(30);
+  --s-factory-canvas-width: 100%;
+  --s-factory-panel-width: clamp(350px, 25%, 400px);
+  --s-factory-editor-width: var(--s-factory-panel-width);
+  --s-factory-sidebar-width: var(--s-factory-panel-width);
+}

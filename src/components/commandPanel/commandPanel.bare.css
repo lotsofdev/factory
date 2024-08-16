@@ -1,0 +1,17 @@
+.s-factory_command-panel {
+  position: absolute;
+  top: var(--s-factory-side-padding);
+  left: 50%;
+  /* right: var(--s-factory-side-padding); */
+  height: 50px;
+  display: flex;
+  align-items: center;
+  /* opacity: 0;
+  translate: -50% calc(-100% - var(--s-factory-side-padding)); */
+
+  &:hover,
+  .-show-ui & {
+    /* translate: -50% 0; */
+    opacity: 1;
+  }
+}

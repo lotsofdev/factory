@@ -1,0 +1,19 @@
+body:not(:has(s-factory)) {
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  &::-webkit-scrollbar {
+    width: 2px;
+    height: 2px;
+  }
+  &::-webkit-scrollbar-track {
+    background-color: s-color(accent, border);
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: s-color(accent);
+  }
+}
+
+body:has(s-factory) {
+  overflow: hidden;
+}

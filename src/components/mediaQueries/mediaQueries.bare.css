@@ -1,0 +1,11 @@
+.s-factory_media-queries {
+  display: flex;
+
+  .s-factory_media-queries-list {
+    display: flex;
+  }
+
+  .s-factory_media-queries-list-item {
+    display: flex;
+  }
+}

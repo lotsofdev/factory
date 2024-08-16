@@ -1,0 +1,12 @@
+{
+  "version": "1.0.0",
+  "name": "sugarcss",
+  "description": "Sugarcss component",
+  "files": ["*"],
+  "dependencies": {},
+  "packageJson": {
+    "dependencies": {
+      "@lotsof/sugarcss": "^1.0.0"
+    }
+  }
+}
