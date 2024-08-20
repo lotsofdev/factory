@@ -7,14 +7,14 @@
   --s-scrolled-classes-class: scrolled;
   --s-scrolled-classes-offset: 50;
 
-  --s-media-mobile: 0 768px;
-  --s-media-tablet: 769px 1024px;
+  --s-media-mobile: 0, 768px;
+  --s-media-tablet: 769px, 1024px;
   --s-media-desktop: 1025px;
   --s-media-wide: 1440px;
 
-  --s-container-default: 320px 900px 20px;
+  --s-container-default: 320px, 900px, 20px;
 
-  --s-grid-default: '1 1 2 _ 3 4 4 _ 3 5 5' 20px;
+  --s-grid-default: '1 1 2 _ 3 4 4 _ 3 5 5', 20px;
 
   --s-color-main: #9e9161;
   --s-color-accent: #d2b02d;
@@ -27,7 +27,8 @@
   --s-color-info: #00ffff;
   --s-color-php: #777cb5;
 
-  --s-shade-text: --darken 20;
+  --s-shade-text: --desaturate 50 --darken 20;
+  --s-shade-form: --alpha 0.8 --desaturate 50;
   --s-shade-text-main: --darken 35;
   --s-shade-placeholder: --alpha 0.4;
   --s-shade-foreground: --lighten 50;
@@ -48,16 +49,16 @@
   --s-transition-default: all 0.2s cubic-bezier(0.745, 0, 0.18, 1);
   --s-transition-fast: all 0.1s cubic-bezier(0.745, 0, 0.18, 1);
 
-  --s-sizes: 0 80px linear;
-  --s-spaces: 0 80px linear;
+  --s-sizes: 0, 80px, linear;
+  --s-spaces: 0, 80px, linear;
 
-  --s-font-default: s-font-family(sans) 16px 1.6em;
-  --s-font-lead: s-font-family(sans) 18px 1.3em;
-  --s-font-title: s-font-family(sans) s-size(100) 1em;
-  --s-font-code: s-font-family(code) 16px 1.6em;
+  --s-font-default: s-font-family(sans), 16px, 1.6em;
+  --s-font-lead: s-font-family(sans), 18px, 1.3em;
+  --s-font-title: s-font-family(sans), s-size(100), 1em;
+  --s-font-code: s-font-family(code), 16px, 1.6em;
 
   --s-radius-default: 6px;
-  --s-radius-special: 20px 12px 20px 4px;
+  --s-radius-special: 20px, 12px, 20px, 4px;
 }
 
 ::selection {

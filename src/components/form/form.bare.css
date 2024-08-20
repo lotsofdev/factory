@@ -1,0 +1,69 @@
+.form {
+}
+
+.form-input,
+.form-select {
+  padding: s-space(10) s-space(20);
+}
+
+.form-checkbox {
+  --isLTR: 1;
+  [dir='rtl'] & {
+    --isLTR: -1;
+  }
+  --thumb-position: 0%;
+
+  font-size: 1rem;
+  margin-block: 0.7em 0.9em;
+  padding: var(--track-padding);
+  inline-size: var(--track-size);
+  block-size: var(--thumb-size);
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  pointer-events: all;
+  cursor: pointer;
+  touch-action: pan-y;
+  outline-offset: 5px;
+  box-sizing: content-box;
+  flex-shrink: 0;
+  display: grid;
+  align-items: center;
+  grid: [track] 1fr / [track] 1fr;
+
+  &::before {
+    --highlight-size: 0;
+
+    content: '';
+    cursor: pointer;
+    pointer-events: none;
+    grid-area: track;
+    inline-size: var(--thumb-size);
+    block-size: var(--thumb-size);
+  }
+
+  &::after {
+    content: '';
+    cursor: pointer;
+    pointer-events: none;
+    grid-area: track;
+    inline-size: var(--thumb-size);
+    block-size: var(--thumb-size);
+  }
+
+  &:checked {
+    --thumb-position: calc((var(--track-size) - 100%) * var(--isLTR));
+  }
+
+  &:indeterminate {
+    --thumb-position: calc(
+      calc(calc(var(--track-size) / 2) - calc(var(--thumb-size) / 2)) *
+        var(--isLTR)
+    );
+  }
+
+  /* @s-state.disabled {
+        --thumb-color: transparent;
+        @s-disabled;
+      } */
+}

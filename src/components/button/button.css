@@ -1,0 +1,26 @@
+@import './button.bare.css';
+
+.button {
+  background: s-color(current);
+  border-radius: s-radius();
+  border: 1px solid s-color(current);
+  color: s-color(current, --lighten 50);
+  font-size: s-size(16);
+  transition: s-transition(fast);
+  @s-radius;
+
+  &:hover {
+    background: s-color(current, --lighten 20);
+    border: 1px solid s-color(current, --lighten 20);
+  }
+
+  &.-outline {
+    color: s-color(accent);
+    background: transparent;
+
+    &:hover {
+      background: s-color(accent, --alpha 0.1);
+      border: 1px solid s-color(current, --lighten 20);
+    }
+  }
+}

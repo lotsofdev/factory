@@ -7,13 +7,13 @@
   }
 
   .s-factory_components-list-item {
-    padding: s-space(10) s-space(10) s-space(10) s-space(30);
+    padding: s-space(20) s-space(10) s-space(20) s-space(30);
     border-bottom: 1px solid s-color(main, border);
 
     @s-radius;
 
     &.-active {
-      background: s-color(accent, --alpha 0.2);
+      background: s-color(accent, --alpha 0.1);
     }
 
     &:hover {
@@ -23,8 +23,14 @@
 
   .s-factory_components-list-item-name {
     text-transform: uppercase;
-    font-size: s-size(13);
+    font-size: s-size(15);
+    opacity: 0.5;
     @s-transition (fast);
+  }
+  .s-factory_components-list-item.-active {
+    .s-factory_components-list-item-name {
+      opacity: 1;
+    }
   }
 
   .s-factory_components-list-item-engines {
@@ -35,7 +41,7 @@
     width: 30px;
     display: flex;
     aspect-ratio: 1;
-    background: s-color(accent, foreground);
+    /* background: s-color(accent, foreground); */
     align-items: center;
     justify-content: center;
     @s-radius;
@@ -59,10 +65,10 @@
 
     .s-factory_components-list-item-engine {
       &.-active {
-        background: s-color(accent);
+        /* background: s-color(accent); */
 
         svg [fill] {
-          fill: s-color(accent, foreground);
+          fill: s-color(accent);
         }
       }
     }

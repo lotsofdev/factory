@@ -2,6 +2,8 @@ import __LitElement from '@lotsof/lit-element';
 
 import __AdvancedSelectElement from '@lotsof/advanced-select-element';
 
+import { __i18n } from '@lotsof/i18n';
+
 import { __isInIframe } from '@lotsof/sugar/is';
 import { __set } from '@lotsof/sugar/object';
 import { __upperFirst } from '@lotsof/sugar/string';
@@ -15,7 +17,10 @@ import __logos from './logos.js';
 import { html } from 'lit';
 import { property, state } from 'lit/decorators.js';
 
-import { TAdvancedSelectElementItemsFunctionApi } from '@lotsof/advanced-select-element/src/js/AdvancedSelectElement.js';
+import {
+  TAdvancedSelectElementItem,
+  TAdvancedSelectElementItemsFunctionApi,
+} from '@lotsof/advanced-select-element';
 import '../../src/css/FactoryElement.css';
 import {
   TFactoryComponent,
@@ -34,6 +39,9 @@ export default class FactoryElement extends __LitElement {
 
   @property({ type: String })
   public mediaQuery: string = 'desktop';
+
+  @property({ type: String })
+  public commandPanelHotkey: string = 'ctrl+p';
 
   @state()
   // @ts-ignore
@@ -186,17 +194,85 @@ export default class FactoryElement extends __LitElement {
       __AdvancedSelectElement,
       {
         items: (api: TAdvancedSelectElementItemsFunctionApi) => {
-          const componentsItems = Object.entries(this.specs.components).map(
-            ([id, component]) => {
-              return {
-                id,
-                value: id,
-                label: component.name,
-              };
-            },
-          );
+          switch (true) {
+            case api.search?.startsWith('/'):
+              const items: TAdvancedSelectElementItem[] = [];
 
-          return componentsItems;
+              for (const [id, component] of Object.entries(
+                this.specs.components,
+              )) {
+                for (let engine of component.engines) {
+                  items.push({
+                    id: `/${id}/${engine}`,
+                    value: `/${id}/${engine}`,
+                    label: `${__upperFirst(component.name)} - ${engine}`,
+                    preventSet: true,
+                    engine,
+                  });
+                }
+              }
+
+              return items;
+              break;
+            case api.search?.startsWith('@'):
+              return Object.entries(this.mediaQueries).map(([name, query]) => {
+                return {
+                  id: `@${name}`,
+                  value: `@${name}`,
+                  preventSet: true,
+                  label: `${__upperFirst(query.name)} - ${query.min}px - ${
+                    query.max
+                  }px`,
+                };
+              });
+
+              break;
+            case api.search?.startsWith('!'):
+              return Object.entries(this.currentComponent.engines).map(
+                ([idx, name]) => {
+                  return {
+                    id: `!${this.currentComponent.name}/${name}`,
+                    value: `!${this.currentComponent.name}/${name}`,
+                    preventSet: true,
+                    label: `${__upperFirst(name as string)}`,
+                  };
+                },
+              );
+
+              break;
+            default:
+              return [
+                {
+                  id: '/',
+                  value: '/',
+                  preventClose: true,
+                  preventSelect: true,
+                  label: `<span class="s-factory-command-panel_prefix">/</span>${__i18n(
+                    'Components',
+                  )}`,
+                },
+                {
+                  id: '!',
+                  value: '!',
+                  preventClose: true,
+                  preventSelect: true,
+                  label: `<span class="s-factory-command-panel_prefix">!</span>${__i18n(
+                    'Switch engine',
+                  )}`,
+                },
+                {
+                  id: '@',
+                  value: '@',
+                  preventClose: true,
+                  preventSelect: true,
+                  label: `<span class="s-factory-command-panel_prefix">@</span>${__i18n(
+                    'Media queries',
+                  )}`,
+                },
+              ];
+
+              break;
+          }
         },
       },
     );
@@ -371,6 +447,10 @@ export default class FactoryElement extends __LitElement {
     this.requestUpdate();
   }
 
+  public selectMediaQuery(name: string): void {
+    this._currentMediaQuery = name;
+  }
+
   private async _applyUpdate(update: TFactoryUpdateObject): Promise<void> {
     // set the value into the component
     __set(this.currentComponent?.values, update.path, update.value);
@@ -435,7 +515,7 @@ export default class FactoryElement extends __LitElement {
   private _renderSidebar(): any {
     return html`<nav class="${this.cls('_sidebar')}">
       <div class="${this.cls('_sidebar-inner')}">
-        ${this._renderComponents()} ${this._renderComponents()}
+        ${this._renderComponents()}
       </div>
     </nav>`;
   }
@@ -466,7 +546,76 @@ export default class FactoryElement extends __LitElement {
 
   private _renderTopbar(): any {
     return html`<nav class="${this.cls('_topbar')}">
-      <h1 class="${this.cls('_topbar-title')}">Factory</h1>
+      <h1 class="${this.cls('_topbar-title')}">
+        <svg
+          width="40"
+          height="40"
+          viewBox="0 0 40 40"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M10 40H40V40C40 34.4772 35.5228 30 30 30H10V40Z"
+            fill="url(#paint0_radial_3_41)"
+            fill-opacity="0.3"
+          />
+          <path
+            d="M0 30H20V35C20 37.7614 17.7614 40 15 40H10C4.47715 40 0 35.5228 0 30V30Z"
+            fill="#FFD500"
+          />
+          <path
+            d="M0 5C0 2.23858 2.23858 0 5 0H10C15.5228 0 20 4.47715 20 10V10H0V5Z"
+            fill="#FFD500"
+          />
+          <path
+            d="M10 10C10 4.47715 14.4772 0 20 0H35C37.7614 0 40 2.23858 40 5V10H10V10Z"
+            fill="url(#paint1_radial_3_41)"
+          />
+          <path
+            d="M20 25H40V20C40 17.2386 37.7614 15 35 15H20V25Z"
+            fill="#FFD500"
+          />
+          <path
+            d="M0 15H30V15C30 20.5228 25.5228 25 20 25H0V15Z"
+            fill="url(#paint2_radial_3_41)"
+          />
+          <defs>
+            <radialGradient
+              id="paint0_radial_3_41"
+              cx="0"
+              cy="0"
+              r="1"
+              gradientUnits="userSpaceOnUse"
+              gradientTransform="translate(40 40) rotate(-162.429) scale(31.4682 94.4047)"
+            >
+              <stop stop-color="#E7DFBD" />
+              <stop offset="1" stop-color="#FBF6E5" />
+            </radialGradient>
+            <radialGradient
+              id="paint1_radial_3_41"
+              cx="0"
+              cy="0"
+              r="1"
+              gradientUnits="userSpaceOnUse"
+              gradientTransform="translate(10) rotate(18.4349) scale(31.6228 94.8683)"
+            >
+              <stop stop-color="#FFFCEE" />
+              <stop offset="1" stop-color="#E3DBB5" />
+            </radialGradient>
+            <radialGradient
+              id="paint2_radial_3_41"
+              cx="0"
+              cy="0"
+              r="1"
+              gradientUnits="userSpaceOnUse"
+              gradientTransform="translate(-2.01166e-06 25) rotate(-18.4349) scale(31.6228 94.8683)"
+            >
+              <stop stop-color="#E4DBB6" />
+              <stop offset="1" stop-color="#FBF7E6" />
+            </radialGradient>
+          </defs>
+        </svg>
+      </h1>
       ${this.currentComponent
         ? html`<div class="${this.cls('_topbar-component')}">
             <h2 class="${this.cls('_topbar-component-name')}">
@@ -474,6 +623,10 @@ export default class FactoryElement extends __LitElement {
             </h2>
             <p class="${this.cls('_topbar-component-version')}">
               ${this.currentComponent.version}
+            </p>
+            <p class="${this.cls('_topbar-component-engine')}">
+              ${__upperFirst(this.currentEngine as string)}
+              ${__logos[this.currentEngine] || this.currentEngine}
             </p>
           </div>`
         : ''}
@@ -488,8 +641,31 @@ export default class FactoryElement extends __LitElement {
 
   private _renderCommandPanel(): any {
     return html`<nav class="${this.cls('_command-panel')}">
-      <s-factory-command-panel>
-        <input type="text" class="s-input" placeholder="Type something..." />
+      <s-factory-command-panel
+        .verbose=${this.verbose}
+        id="s-factory-command-panel"
+        mountWhen="direct"
+        hotkey=${this.commandPanelHotkey}
+        @sFactoryCommandPanel.select=${(e) => {
+          let engine: string, id: string;
+          switch (true) {
+            case e.detail.item.value.startsWith('/'):
+            case e.detail.item.value.startsWith('!'):
+              [id, engine] = e.detail.item.value.slice(1).split('/');
+              this.selectComponent(id, engine);
+              break;
+            case e.detail.item.value.startsWith('@'):
+              const mediaQuery = e.detail.item.value.slice(1);
+              this.selectMediaQuery(mediaQuery);
+              break;
+          }
+        }}
+      >
+        <input
+          type="text"
+          class="s-input"
+          placeholder=${__i18n(`Command panel (${this.commandPanelHotkey})`)}
+        />
       </s-factory-command-panel>
     </nav>`;
   }
@@ -498,6 +674,7 @@ export default class FactoryElement extends __LitElement {
     return html`<div class="${this.cls('_editor')}">
       <div class="${this.cls('_editor-inner')}">
         <s-json-schema-form
+          id="s-factory-json-schema-form"
           @sJsonSchemaForm.update=${(e: CustomEvent) => {
             this._applyUpdate({
               ...e.detail.update,
@@ -506,6 +683,8 @@ export default class FactoryElement extends __LitElement {
           }}
           id="s-factory-json-schema-form"
           name="s-factory-json-schema-form"
+          .buttonClasses=${true}
+          .formClasses=${true}
           .verbose=${this.verbose}
           .schema=${this.currentComponent?.schema}
           .values=${this.currentComponent?.values ?? {}}

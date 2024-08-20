@@ -2,10 +2,12 @@
 @import './config/config.css';
 
 @import './bottombar/bottombar.css';
+@import './button/button.css';
 @import './canvas/canvas.css';
 @import './commandPanel/commandPanel.css';
 @import './componentsList/componentsList.css';
 @import './editor/editor.css';
+@import './form/form.css';
 @import './iframe/iframe.css';
 @import './layout/layout.css';
 @import './mediaQueries/mediaQueries.css';

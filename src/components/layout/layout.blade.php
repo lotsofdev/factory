@@ -14,7 +14,7 @@
 </head>
 
 <body>
-    <s-factory></s-factory>
+    <s-factory verbose></s-factory>
 </body>
 
 </html>

@@ -2,6 +2,11 @@
   --s-factory-side-padding: s-space(30);
   --s-factory-canvas-width: 100%;
   --s-factory-panel-width: clamp(350px, 25%, 400px);
-  --s-factory-editor-width: var(--s-factory-panel-width);
+  --s-factory-editor-width: clamp(450px, 25%, 600px);
   --s-factory-sidebar-width: var(--s-factory-panel-width);
+
+  --s-factory-depth: 0px 0.4px 0.3px rgba(0, 0, 0, 0.008),
+    0px 0.9px 0.8px rgba(0, 0, 0, 0.012), 0px 1.8px 1.5px rgba(0, 0, 0, 0.015),
+    0px 3.1px 2.7px rgba(0, 0, 0, 0.018), 0px 5.8px 5px rgba(0, 0, 0, 0.022),
+    0px 14px 12px rgba(0, 0, 0, 0.03);
 }

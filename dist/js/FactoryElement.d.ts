@@ -6,6 +6,7 @@ export default class FactoryElement extends __LitElement {
     src: string;
     mediaQueries: Record<string, TFactoryMediaQuery>;
     mediaQuery: string;
+    commandPanelHotkey: string;
     specs: TFactorySpecs;
     _currentComponent: TFactoryComponent | null;
     _currentComponentId: string;
@@ -29,6 +30,7 @@ export default class FactoryElement extends __LitElement {
     private _updateIframeSize;
     private _updateComponent;
     selectComponent(id: string, engine?: string): void;
+    selectMediaQuery(name: string): void;
     private _applyUpdate;
     private _renderComponents;
     private _renderSidebar;
