@@ -6,12 +6,17 @@
   border: 1px solid s-color(current);
   color: s-color(current, --lighten 50);
   font-size: s-size(16);
-  transition: s-transition(fast);
+  @s-transition (fast);
   @s-radius;
 
   &:hover {
     background: s-color(current, --lighten 20);
     border: 1px solid s-color(current, --lighten 20);
+  }
+
+  &.-full {
+    width: 100%;
+    text-align: center;
   }
 
   &.-outline {

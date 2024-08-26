@@ -1,3 +1,3 @@
-import type { IFactoryConfig } from '../shared/factory.types.js';
-declare const config: IFactoryConfig;
+import type { TFactoryConfig } from '../shared/factory.types.js';
+declare const config: TFactoryConfig;
 export default config;

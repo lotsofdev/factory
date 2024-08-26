@@ -1,6 +1,5 @@
-import { html } from 'lit';
 export default {
-    blade: html `<svg
+    blade: `<svg
     width="64"
     height="64"
     viewBox="0 0 64 64"
@@ -31,7 +30,7 @@ export default {
       </clipPath>
     </defs>
   </svg>`,
-    lit: html `<svg
+    lit: `<svg
     width="64"
     height="64"
     viewBox="0 0 64 64"
@@ -54,7 +53,7 @@ export default {
       </clipPath>
     </defs>
   </svg> `,
-    react: html `<svg
+    react: `<svg
     width="64"
     height="64"
     viewBox="0 0 64 64"
@@ -70,7 +69,7 @@ export default {
       fill="black"
     />
   </svg> `,
-    twig: html `<svg
+    twig: `<svg
     width="64"
     height="64"
     viewBox="0 0 64 64"
@@ -91,7 +90,7 @@ export default {
       </clipPath>
     </defs>
   </svg> `,
-    vue: html `<svg
+    vue: `<svg
     width="64"
     height="64"
     viewBox="0 0 64 64"

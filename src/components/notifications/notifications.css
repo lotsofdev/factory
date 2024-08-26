@@ -1,0 +1,37 @@
+@import './notifications.bare.css';
+
+.s-factory_notifications {
+  .s-factory_notifications-list {
+    display: flex;
+    flex-direction: column;
+    gap: s-space(20);
+    user-select: none;
+  }
+
+  .s-factory_notifications-item {
+    padding: s-space(10) s-space(20);
+    box-shadow: var(--s-factory-depth);
+    @s-radius;
+
+    &.-success {
+      background: s-color(success, --desaturate 20 --lighten 30);
+      color: s-color(success, --darken 30);
+    }
+    &.-warning {
+      background: s-color(warning, --desaturate 20 --lighten 30);
+      color: s-color(warning, --darken 30);
+    }
+    &.-info {
+      background: s-color(info, --desaturate 20 --lighten 30);
+      color: s-color(info, --darken 30);
+    }
+    &.-error {
+      background: s-color(error, --desaturate 20 --lighten 30);
+      color: s-color(error, --darken 30);
+    }
+  }
+
+  .s-factory_notifications-message {
+    font-size: s-size(15);
+  }
+}

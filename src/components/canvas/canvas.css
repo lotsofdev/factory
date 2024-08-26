@@ -2,4 +2,9 @@
 
 .s-factory_canvas {
   background: rgba(0, 0, 0, 0.01);
+  @s-transition();
+
+  /* @media (dark) {
+    background: s-color(main, --darken 30 --desaturate 30);
+  } */
 }

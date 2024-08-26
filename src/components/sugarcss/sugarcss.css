@@ -1,6 +1,6 @@
 @import '@lotsof/sugarcss/src/css/sugarcss.css';
 
-:root {
+body {
   --s-setting-verbose: false;
   --s-setting-mobile-first: false;
 
@@ -17,10 +17,10 @@
   --s-grid-default: '1 1 2 _ 3 4 4 _ 3 5 5', 20px;
 
   --s-color-main: #9e9161;
-  --s-color-accent: #d2b02d;
+  --s-color-accent: #40a1bf;
   --s-color-complementary: #00f0ff;
   --s-color-ternary: #9ec468;
-  --s-color-current: #d2b02d;
+  --s-color-current: #40a1bf;
   --s-color-success: #91ff00;
   --s-color-warning: #ffd500;
   --s-color-error: #ff003b;
@@ -28,11 +28,12 @@
   --s-color-php: #777cb5;
 
   --s-shade-text: --desaturate 50 --darken 20;
-  --s-shade-form: --alpha 0.8 --desaturate 50;
+  --s-shade-form: --desaturate 50 --alpha 0.8;
   --s-shade-text-main: --darken 35;
   --s-shade-placeholder: --alpha 0.4;
   --s-shade-foreground: --lighten 50;
   --s-shade-background: --lighten 50;
+  --s-shade-icon: --alpha 0.7;
   --s-shade-surface: --darken 40;
   --s-shade-border: --alpha 0.1;
   --s-shade-hover: --lighten 40;
@@ -59,6 +60,33 @@
 
   --s-radius-default: 6px;
   --s-radius-special: 20px, 12px, 20px, 4px;
+
+  /* &.-dark {
+    --s-radius-default: 20px;
+
+    --s-color-main: hsl(47, 0%, 50%);
+    --s-color-accent: #40a1bf;
+    --s-color-complementary: #00f0ff;
+    --s-color-ternary: #9ec468;
+    --s-color-current: #40a1bf;
+    --s-color-success: #91ff00;
+    --s-color-warning: #ffd500;
+    --s-color-error: #ff003b;
+    --s-color-info: #00ffff;
+    --s-color-php: #777cb5;
+
+    --s-shade-text: --desaturate 50 --lighten 40;
+    --s-shade-form: --desaturate 50 --alpha 0.8;
+    --s-shade-text-main: --lighten 50;
+    --s-shade-placeholder: --alpha 0.4 --lighten 10;
+    --s-shade-foreground: --lighten 50;
+    --s-shade-background: --desaturate 50 --darken 38;
+    --s-shade-icon: --alpha 0.7;
+    --s-shade-surface: --darken 40;
+    --s-shade-border: --alpha 0.1;
+    --s-shade-hover: --lighten 40;
+    --s-shade-active: --darken 10;
+  } */
 }
 
 ::selection {

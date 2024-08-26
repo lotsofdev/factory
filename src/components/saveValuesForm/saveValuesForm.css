@@ -1,0 +1,5 @@
+@import './saveValuesForm.bare.css';
+
+.s-factory_save-values-form {
+  gap: s-space(20);
+}

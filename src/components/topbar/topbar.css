@@ -24,12 +24,12 @@
     gap: s-space(20);
   }
   .s-factory_topbar-component-name {
-    color: s-color(main, --alpha 0.6);
+    color: s-color(main, text);
     border-inline-start: 1px solid s-color(main, border);
     padding-inline-start: s-space(20);
   }
   .s-factory_topbar-component-version {
-    color: s-color(main, --alpha 0.6);
+    color: s-color(main, text);
     border-inline-start: 1px solid s-color(main, border);
     padding-inline-start: s-space(20);
   }
@@ -39,7 +39,7 @@
     gap: s-space(10);
     position: relative;
     top: 0;
-    color: s-color(main, --alpha 0.6);
+    color: s-color(main, text);
     border-inline-start: 1px solid s-color(main, border);
     padding-inline-start: s-space(20);
 
@@ -48,7 +48,7 @@
       height: 1em;
 
       [fill] {
-        fill: s-color(accent, --alpha 0.6);
+        fill: s-color(accent, icon);
       }
     }
   }

@@ -24,7 +24,6 @@
   .s-factory-command-panel_input {
     outline: none;
     display: block;
-    padding: s-space(30);
     font-size: s-size(20);
     width: 100%;
   }
@@ -32,7 +31,7 @@
   .s-factory-command-panel_prefix {
     font-family: monospace;
     opacity: 0.3;
-    margin-inline-end: s-space(5);
+    margin-inline-end: s-space(10);
   }
 
   .s-factory-command-panel_dropdown {
@@ -54,7 +53,12 @@
     padding: s-space(10) s-space(20);
     font-size: s-size(20);
     white-space: nowrap;
+    border-bottom: solid 1px s-color(main, border);
     @s-radius;
+
+    &:last-child {
+      border-bottom: none;
+    }
 
     &.-preselected {
       background: s-color(accent, --alpha 0.1);
@@ -74,6 +78,7 @@
   .s-factory-command-panel_highlight {
     background: s-color(accent);
     color: s-color(accent, foreground);
+    @s-radius;
   }
 
   .s-factory-command-panel_group {

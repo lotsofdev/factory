@@ -2,6 +2,7 @@
 
 <head>
     <title>Factory - @yield('title')</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
     @foreach($ui->assets as $asset)
         @if (str_contains($asset, '.css'))
@@ -14,7 +15,7 @@
 </head>
 
 <body>
-    <s-factory verbose></s-factory>
+    <s-factory id="s-factory" verbose></s-factory>
 </body>
 
 </html>

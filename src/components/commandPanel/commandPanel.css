@@ -1,12 +1,17 @@
 @import './commandPanel.bare.css';
 @import './commandPanel.advancedSelect.css';
+@import './commandPanel.component.css';
 
 .s-factory_command-panel {
   gap: s-space(20);
+  padding: s-space(10);
   background: s-color(main, background);
   box-shadow: var(--s-factory-depth);
   width: clamp(250px, 25%, 400px);
   @s-transition();
   @s-radius;
-  font-size: s-size(30);
+
+  * {
+    font-size: s-size(16) !important;
+  }
 }

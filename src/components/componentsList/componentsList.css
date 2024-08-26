@@ -1,7 +1,7 @@
 @import './componentsList.bare.css';
 
 .s-factory_components-list {
-  padding: s-space(10);
+  padding: s-space(20);
 
   .s-factory_components-list-item {
   }
@@ -9,8 +9,11 @@
   .s-factory_components-list-item {
     padding: s-space(20) s-space(10) s-space(20) s-space(30);
     border-bottom: 1px solid s-color(main, border);
-
     @s-radius;
+
+    &:last-child {
+      border-bottom: none;
+    }
 
     &.-active {
       background: s-color(accent, --alpha 0.1);
@@ -47,13 +50,19 @@
     @s-radius;
     @s-transition (fast);
 
+    svg {
+      opacity: 0.3;
+    }
     svg [fill] {
-      fill: s-color(main, --alpha 0.3);
+      fill: s-color(accent, icon);
       @s-transition (fast);
     }
     &:hover {
+      svg {
+        opacity: 1;
+      }
       svg [fill] {
-        fill: s-color(main, --alpha 0.6);
+        fill: s-color(accent, icon);
       }
     }
   }
@@ -65,8 +74,9 @@
 
     .s-factory_components-list-item-engine {
       &.-active {
-        /* background: s-color(accent); */
-
+        svg {
+          opacity: 1;
+        }
         svg [fill] {
           fill: s-color(accent);
         }

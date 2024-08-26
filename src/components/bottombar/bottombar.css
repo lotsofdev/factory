@@ -4,6 +4,32 @@
   background: s-color(main, background);
   padding: s-space(10);
   box-shadow: var(--s-factory-depth);
+  gap: s-space(20);
   @s-radius;
   @s-transition();
+
+  .s-factory_bottombar-mode {
+    background: s-color(accent, --alpha 0.3);
+    aspect-ratio: 1;
+    display: flex;
+    width: 1.6em;
+    align-items: center;
+    justify-content: center;
+    outline: none;
+    @s-radius;
+
+    &.-active {
+      background: s-color(accent);
+    }
+
+    svg {
+      display: block;
+      width: 1em;
+      height: 1em;
+
+      path {
+        fill: s-color(accent, foreground);
+      }
+    }
+  }
 }

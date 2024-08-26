@@ -5,7 +5,10 @@
     gap: s-space(10);
   }
   .s-factory_media-queries-list-item {
-    padding: s-space(5) s-space(10) 0 s-space(10);
+    background: s-color(accent, --alpha 0.1);
+    padding: s-space(0) s-space(15);
+    display: flex;
+    align-items: center;
     cursor: pointer;
     @s-transition (fast);
     @s-radius;
@@ -16,12 +19,12 @@
     }
 
     &:hover:not(.-active) {
-      background: s-color(accent, --alpha 0.1);
+      background: s-color(accent, --alpha 0.2);
     }
   }
   .s-factory_media-queries-list-item-name {
     text-transform: uppercase;
-    font-size: s-size(13);
-    letter-spacing: 0.1em;
+    font-size: s-size(10);
+    letter-spacing: 0.05em;
   }
 }

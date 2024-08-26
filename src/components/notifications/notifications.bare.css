@@ -1,0 +1,13 @@
+.s-factory_notifications {
+  position: fixed;
+  z-index: 500;
+  top: var(--s-factory-side-padding);
+  right: var(--s-factory-side-padding);
+
+  .s-factory_notifications-list {
+  }
+  .s-factory_notifications-item {
+  }
+  .s-factory_notifications-item {
+  }
+}

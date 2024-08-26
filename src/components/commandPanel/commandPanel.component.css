@@ -1,0 +1,21 @@
+.s-factory_command-panel-component {
+  display: flex;
+  gap: s-space(20);
+  align-items: center;
+
+  .s-factory_command-panel-component-name {
+    flex-grow: 1;
+  }
+  .s-factory_command-panel-component-engine {
+    color: s-color(accent, --alpha 0.3);
+  }
+
+  svg {
+    width: 1em;
+    height: 1em;
+
+    [fill] {
+      fill: s-color(accent);
+    }
+  }
+}

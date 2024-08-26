@@ -14,28 +14,37 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import __LitElement from '@lotsof/lit-element';
+import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import __AdvancedSelectElement from '@lotsof/advanced-select-element';
 import { __i18n } from '@lotsof/i18n';
+import __logoFactory from './assets/logoFactory.js';
 import { __isInIframe } from '@lotsof/sugar/is';
 import { __set } from '@lotsof/sugar/object';
 import { __upperFirst } from '@lotsof/sugar/string';
-import { __iframeAutoSize, __injectHtml } from '@lotsof/sugar/dom';
+import { __getFormValues, __iframeAutoSize, __injectHtml, } from '@lotsof/sugar/dom';
 import '@lotsof/json-schema-form';
 import __logos from './logos.js';
+import __saveComponentValuesSchema from './saveValues/saveValues.schema.json' assert { type: 'json' };
 import { html } from 'lit';
 import { property, state } from 'lit/decorators.js';
+import { __hotkey } from '@lotsof/sugar/keyboard';
 import '../../src/css/FactoryElement.css';
 export default class FactoryElement extends __LitElement {
     constructor() {
-        super();
+        super('s-factory');
         this.src = '/api/specs';
         this.mediaQueries = {};
         this.mediaQuery = 'desktop';
-        this.commandPanelHotkey = 'ctrl+p';
+        this.commandPanelHotkey = 'cmd+p';
+        this.darkModeClass = '-dark';
         this.specs = {};
+        this._notifications = [];
         this._currentComponent = null;
         this._currentComponentId = '';
         this._currentMediaQuery = '';
+        this._currentAction = null;
+        this._state = {};
+        this.saveState = true;
     }
     get currentEngine() {
         var _a;
@@ -47,6 +56,9 @@ export default class FactoryElement extends __LitElement {
             return (_a = this.currentComponent) === null || _a === void 0 ? void 0 : _a.engines[0];
         }
         return matches === null || matches === void 0 ? void 0 : matches[1];
+    }
+    get $commandPanel() {
+        return this.querySelector('#s-factory-command-panel');
     }
     get currentComponent() {
         return this.specs.components[this.currentComponentId];
@@ -77,7 +89,7 @@ export default class FactoryElement extends __LitElement {
     _updateMediaQueries() {
         var _a, _b, _c, _d;
         // get the computed style of the document (iframe)
-        const style = (_b = (_a = this._$iframe) === null || _a === void 0 ? void 0 : _a.contentWindow) === null || _b === void 0 ? void 0 : _b.getComputedStyle((_c = this.$iframeDocument) === null || _c === void 0 ? void 0 : _c.documentElement);
+        const style = (_b = (_a = this._$iframe) === null || _a === void 0 ? void 0 : _a.contentWindow) === null || _b === void 0 ? void 0 : _b.getComputedStyle((_c = this.$iframeDocument) === null || _c === void 0 ? void 0 : _c.body);
         // try to get the media queries from the css variables (sugarcss)
         ['mobile', 'tablet', 'desktop', 'wide'].forEach((media) => {
             var _a, _b;
@@ -133,12 +145,14 @@ export default class FactoryElement extends __LitElement {
             }
             // init command panel
             this._initCommandPanel();
+            // restore the ui mode (light/dark)
+            this._restoreUiMode();
         });
     }
     _initCommandPanel() {
-        __AdvancedSelectElement.define('s-factory-command-panel', __AdvancedSelectElement, {
+        __AdvancedSelectElement.define('s-factory-command-panel', {
             items: (api) => {
-                var _a, _b, _c;
+                var _a, _b, _c, _d;
                 switch (true) {
                     case (_a = api.search) === null || _a === void 0 ? void 0 : _a.startsWith('/'):
                         const items = [];
@@ -147,7 +161,11 @@ export default class FactoryElement extends __LitElement {
                                 items.push({
                                     id: `/${id}/${engine}`,
                                     value: `/${id}/${engine}`,
-                                    label: `${__upperFirst(component.name)} - ${engine}`,
+                                    label: `<div class="${this.cls('_command-panel-component')}">
+                        <h3 class="${this.cls('_command-panel-component-name')}">${__upperFirst(component.name)}</span>
+                        <h4 class="${this.cls('_command-panel-component-engine')}">${engine}</h4>
+                        ${__logos[engine] || ''}
+                      </div>`,
                                     preventSet: true,
                                     engine,
                                 });
@@ -175,6 +193,16 @@ export default class FactoryElement extends __LitElement {
                             };
                         });
                         break;
+                    case (_d = api.search) === null || _d === void 0 ? void 0 : _d.startsWith('<'):
+                        return Object.entries(this.currentComponent.savedValues).map(([key, savedData]) => {
+                            return {
+                                id: `<${key}`,
+                                value: `<${key}`,
+                                preventSet: true,
+                                label: savedData.name,
+                            };
+                        });
+                        break;
                     default:
                         return [
                             {
@@ -182,21 +210,43 @@ export default class FactoryElement extends __LitElement {
                                 value: '/',
                                 preventClose: true,
                                 preventSelect: true,
-                                label: `<span class="s-factory-command-panel_prefix">/</span>${__i18n('Components')}`,
+                                label: `<span class="s-factory-command-panel_prefix"
+                      >/</span
+                    >${__i18n('Components')}`,
                             },
                             {
                                 id: '!',
                                 value: '!',
                                 preventClose: true,
                                 preventSelect: true,
-                                label: `<span class="s-factory-command-panel_prefix">!</span>${__i18n('Switch engine')}`,
+                                label: `<span class="s-factory-command-panel_prefix"
+                      >!</span
+                    >${__i18n('Switch engine')}`,
                             },
                             {
                                 id: '@',
                                 value: '@',
                                 preventClose: true,
                                 preventSelect: true,
-                                label: `<span class="s-factory-command-panel_prefix">@</span>${__i18n('Media queries')}`,
+                                label: `<span class="s-factory-command-panel_prefix"
+                      >@</span
+                    >${__i18n('Media queries')}`,
+                            },
+                            {
+                                id: '<',
+                                value: '<',
+                                preventClose: true,
+                                preventSelect: true,
+                                label: `<span class="s-factory-command-panel_prefix"
+                      >&lt;</span
+                    >${__i18n('Load values')}`,
+                            },
+                            {
+                                id: '>',
+                                value: '>',
+                                label: `<span class="s-factory-command-panel_prefix"
+                      >&gt;</span
+                    >${__i18n('Save values')}`,
                             },
                         ];
                         break;
@@ -229,6 +279,46 @@ export default class FactoryElement extends __LitElement {
                     break;
             }
         });
+        const hotkeySettings = {
+            ctx: context,
+        };
+        __hotkey('escape', (e) => {
+            this._currentAction = null;
+        }, hotkeySettings);
+        __hotkey('cmd+shift+p', (e) => {
+            var _a, _b;
+            (_a = this.$commandPanel) === null || _a === void 0 ? void 0 : _a.setSearch('');
+            (_b = this.$commandPanel) === null || _b === void 0 ? void 0 : _b.focus();
+        }, hotkeySettings);
+        __hotkey('cmd+p', (e) => {
+            var _a, _b;
+            (_a = this.$commandPanel) === null || _a === void 0 ? void 0 : _a.setSearch('/');
+            (_b = this.$commandPanel) === null || _b === void 0 ? void 0 : _b.focus();
+        }, hotkeySettings);
+        __hotkey('cmd+g', (e) => {
+            var _a, _b;
+            (_a = this.$commandPanel) === null || _a === void 0 ? void 0 : _a.setSearch('@');
+            (_b = this.$commandPanel) === null || _b === void 0 ? void 0 : _b.focus();
+        }, hotkeySettings);
+        __hotkey('cmd+e', (e) => {
+            var _a, _b;
+            (_a = this.$commandPanel) === null || _a === void 0 ? void 0 : _a.setSearch('!');
+            (_b = this.$commandPanel) === null || _b === void 0 ? void 0 : _b.focus();
+        }, hotkeySettings);
+        __hotkey('cmd+l', (e) => {
+            var _a, _b;
+            (_a = this.$commandPanel) === null || _a === void 0 ? void 0 : _a.setSearch('<');
+            (_b = this.$commandPanel) === null || _b === void 0 ? void 0 : _b.focus();
+        }, hotkeySettings);
+        __hotkey('cmd+s', (e) => {
+            this._currentAction = 'saveValues';
+        }, hotkeySettings);
+        __hotkey('cmd+r', (e) => {
+            this.randomizeComponentValues(this.currentComponentId);
+        }, hotkeySettings);
+        __hotkey('cmd+m', (e) => {
+            this.toggleUiMode();
+        }, hotkeySettings);
     }
     _initEnvironment() {
         var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x;
@@ -312,7 +402,8 @@ export default class FactoryElement extends __LitElement {
     _updateComponent(id, engine) {
         return __awaiter(this, void 0, void 0, function* () {
             var _a, _b;
-            if (!this.currentComponent) {
+            const component = this.specs.components[id];
+            if (!component) {
                 return;
             }
             let url = `/api/render/${id}`;
@@ -325,10 +416,13 @@ export default class FactoryElement extends __LitElement {
                     values: (_b = (_a = this.currentComponent) === null || _a === void 0 ? void 0 : _a.values) !== null && _b !== void 0 ? _b : {},
                 }),
             }), json = yield request.json();
-            this.currentComponent.values = json.values;
+            component.values = json.values;
             this._setIframeContent(json.html);
             this.requestUpdate();
         });
+    }
+    getComponentById(id) {
+        return this.specs.components[id];
     }
     selectComponent(id, engine) {
         // compose the url
@@ -342,8 +436,67 @@ export default class FactoryElement extends __LitElement {
         this._currentComponentId = id;
         // render the new component
         this._updateComponent(id, engine);
-        // update the factory
-        this.requestUpdate();
+    }
+    setComponentValues(id, values) {
+        const component = this.getComponentById(id);
+        if (!component) {
+            return;
+        }
+        component.values = values;
+        this._updateComponent(component.name, this.currentEngine);
+    }
+    toggleUiMode() {
+        this.setUiMode(this.state.mode === 'dark' ? 'light' : 'dark');
+    }
+    _restoreUiMode() {
+        if (this.state.mode) {
+            this.setUiMode(this.state.mode);
+        }
+    }
+    setUiMode(mode) {
+        this.setState({ mode });
+        if (mode === 'light') {
+            document.body.classList.remove('-dark');
+        }
+        else {
+            document.body.classList.add('-dark');
+        }
+    }
+    randomizeComponentValues(id) {
+        const component = this.getComponentById(id);
+        if (!component) {
+            return;
+        }
+        // update the component with empty values
+        component.values = {};
+        this._updateComponent(component.name, this.currentEngine);
+    }
+    _saveComponentValues(component, name) {
+        return __awaiter(this, void 0, void 0, function* () {
+            // post the new values to the server
+            const request = yield fetch(`/api/saveValues/${component.name}`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    name,
+                    values: component.values,
+                }),
+            }), json = yield request.json();
+            if (json.errors) {
+                console.error(json.errors);
+                return;
+            }
+            // update specs
+            yield this._fetchSpecs();
+            // remove the popin
+            this._currentAction = null;
+            // @TODO   send a notification
+            this._sendNotification({
+                id: 'valuesSaved',
+                message: `Values saved as ${name}`,
+                type: 'success',
+                timeout: 2000,
+            });
+        });
     }
     selectMediaQuery(name) {
         this._currentMediaQuery = name;
@@ -356,6 +509,27 @@ export default class FactoryElement extends __LitElement {
             // update the component
             this._updateComponent(this.currentComponentId, this.currentEngine);
         });
+    }
+    _handleCommandPanelSelect(item) {
+        var _a;
+        let engine, id;
+        switch (true) {
+            case item.value.startsWith('/'):
+            case item.value.startsWith('!'):
+                [id, engine] = item.value.slice(1).split('/');
+                this.selectComponent(id, engine);
+                break;
+            case item.value.startsWith('@'):
+                const mediaQuery = item.value.slice(1);
+                this.selectMediaQuery(mediaQuery);
+                break;
+            case item.value.startsWith('>'):
+                this._currentAction = 'saveValues';
+                break;
+            case item.value.startsWith('<'):
+                this.setComponentValues(this.currentComponent.name, (_a = this.currentComponent.savedValues[item.value.slice(1)]) === null || _a === void 0 ? void 0 : _a.values);
+                break;
+        }
     }
     _renderComponents() {
         return html `
@@ -388,7 +562,7 @@ export default class FactoryElement extends __LitElement {
                 this.selectComponent(id, engine);
             }}
                             >
-                              ${__logos[engine] || engine}
+                              ${unsafeHTML(__logos[engine] || engine)}
                             </li>
                           `)}
                       </ol>
@@ -399,6 +573,16 @@ export default class FactoryElement extends __LitElement {
           `
             : ''}
     `;
+    }
+    _sendNotification(notification) {
+        return __awaiter(this, void 0, void 0, function* () {
+            this._notifications.push(notification);
+            if (notification.timeout) {
+                setTimeout(() => {
+                    this._notifications = this._notifications.filter((n) => n !== notification);
+                }, notification.timeout);
+            }
+        });
     }
     _renderSidebar() {
         return html `<nav class="${this.cls('_sidebar')}">
@@ -430,76 +614,7 @@ export default class FactoryElement extends __LitElement {
     }
     _renderTopbar() {
         return html `<nav class="${this.cls('_topbar')}">
-      <h1 class="${this.cls('_topbar-title')}">
-        <svg
-          width="40"
-          height="40"
-          viewBox="0 0 40 40"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M10 40H40V40C40 34.4772 35.5228 30 30 30H10V40Z"
-            fill="url(#paint0_radial_3_41)"
-            fill-opacity="0.3"
-          />
-          <path
-            d="M0 30H20V35C20 37.7614 17.7614 40 15 40H10C4.47715 40 0 35.5228 0 30V30Z"
-            fill="#FFD500"
-          />
-          <path
-            d="M0 5C0 2.23858 2.23858 0 5 0H10C15.5228 0 20 4.47715 20 10V10H0V5Z"
-            fill="#FFD500"
-          />
-          <path
-            d="M10 10C10 4.47715 14.4772 0 20 0H35C37.7614 0 40 2.23858 40 5V10H10V10Z"
-            fill="url(#paint1_radial_3_41)"
-          />
-          <path
-            d="M20 25H40V20C40 17.2386 37.7614 15 35 15H20V25Z"
-            fill="#FFD500"
-          />
-          <path
-            d="M0 15H30V15C30 20.5228 25.5228 25 20 25H0V15Z"
-            fill="url(#paint2_radial_3_41)"
-          />
-          <defs>
-            <radialGradient
-              id="paint0_radial_3_41"
-              cx="0"
-              cy="0"
-              r="1"
-              gradientUnits="userSpaceOnUse"
-              gradientTransform="translate(40 40) rotate(-162.429) scale(31.4682 94.4047)"
-            >
-              <stop stop-color="#E7DFBD" />
-              <stop offset="1" stop-color="#FBF6E5" />
-            </radialGradient>
-            <radialGradient
-              id="paint1_radial_3_41"
-              cx="0"
-              cy="0"
-              r="1"
-              gradientUnits="userSpaceOnUse"
-              gradientTransform="translate(10) rotate(18.4349) scale(31.6228 94.8683)"
-            >
-              <stop stop-color="#FFFCEE" />
-              <stop offset="1" stop-color="#E3DBB5" />
-            </radialGradient>
-            <radialGradient
-              id="paint2_radial_3_41"
-              cx="0"
-              cy="0"
-              r="1"
-              gradientUnits="userSpaceOnUse"
-              gradientTransform="translate(-2.01166e-06 25) rotate(-18.4349) scale(31.6228 94.8683)"
-            >
-              <stop stop-color="#E4DBB6" />
-              <stop offset="1" stop-color="#FBF7E6" />
-            </radialGradient>
-          </defs>
-        </svg>
-      </h1>
+      <h1 class="${this.cls('_topbar-title')}">${__logoFactory}</h1>
       ${this.currentComponent
             ? html `<div class="${this.cls('_topbar-component')}">
             <h2 class="${this.cls('_topbar-component-name')}">
@@ -510,15 +625,34 @@ export default class FactoryElement extends __LitElement {
             </p>
             <p class="${this.cls('_topbar-component-engine')}">
               ${__upperFirst(this.currentEngine)}
-              ${__logos[this.currentEngine] || this.currentEngine}
+              ${unsafeHTML(__logos[this.currentEngine] || this.currentEngine)}
             </p>
           </div>`
             : ''}
     </nav>`;
     }
+    _renderMode() {
+        return html `
+      <button
+        class="${this.cls('_bottombar-mode')} ${this.state.mode === 'dark'
+            ? '-active'
+            : ''}"
+        @pointerup=${() => {
+            this.toggleUiMode();
+        }}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
+          <!--!Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
+          <path
+            d="M223.5 32C100 32 0 132.3 0 256S100 480 223.5 480c60.6 0 115.5-24.2 155.8-63.4c5-4.9 6.3-12.5 3.1-18.7s-10.1-9.7-17-8.5c-9.8 1.7-19.8 2.6-30.1 2.6c-96.9 0-175.5-78.8-175.5-176c0-65.8 36-123.1 89.3-153.3c6.1-3.5 9.2-10.5 7.7-17.3s-7.3-11.9-14.3-12.5c-6.3-.5-12.6-.8-19-.8z"
+          />
+        </svg>
+      </button>
+    `;
+    }
     _renderBottombar() {
         return html `<nav class="${this.cls('_bottombar')}">
-      ${this._renderMediaQueries()}
+      ${this._renderMediaQueries()} ${this._renderMode()}
     </nav>`;
     }
     _renderCommandPanel() {
@@ -529,27 +663,72 @@ export default class FactoryElement extends __LitElement {
         mountWhen="direct"
         hotkey=${this.commandPanelHotkey}
         @sFactoryCommandPanel.select=${(e) => {
-            let engine, id;
-            switch (true) {
-                case e.detail.item.value.startsWith('/'):
-                case e.detail.item.value.startsWith('!'):
-                    [id, engine] = e.detail.item.value.slice(1).split('/');
-                    this.selectComponent(id, engine);
-                    break;
-                case e.detail.item.value.startsWith('@'):
-                    const mediaQuery = e.detail.item.value.slice(1);
-                    this.selectMediaQuery(mediaQuery);
-                    break;
-            }
+            this._handleCommandPanelSelect(e.detail.item);
         }}
       >
         <input
           type="text"
-          class="s-input"
+          class="form-input"
           placeholder=${__i18n(`Command panel (${this.commandPanelHotkey})`)}
         />
       </s-factory-command-panel>
     </nav>`;
+    }
+    _renderNotifications() {
+        if (!this._notifications.length) {
+            return;
+        }
+        return html `
+      <div class="${this.cls('_notifications')}">
+        <ul class="${this.cls('_notifications-list')}">
+          ${this._notifications.map((notification) => html `
+              <li
+                class="${this.cls('_notifications-item')} ${notification.type
+            ? `-${notification.type}`
+            : ''}"
+              >
+                <span class="${this.cls('_notifications-message')}">
+                  ${notification.message}
+                </span>
+              </li>
+            `)}
+      </div>
+    `;
+    }
+    _renderSaveValuesForm() {
+        var _a;
+        return html `
+      <div class="popin">
+        <form
+          class="${this.cls('_save-values-form')} form"
+          @submit=${(e) => {
+            e.preventDefault();
+            // make sure form is valid
+            if (!e.target.checkValidity()) {
+                return;
+            }
+            // save the values
+            const formValues = __getFormValues(e.target);
+            this._saveComponentValues(this.currentComponent, formValues.name);
+        }}
+        >
+          <s-json-schema-form
+            id="s-factory-save-values-form"
+            .formClasses=${true}
+            .schema=${__saveComponentValuesSchema}
+            .values=${{}}
+          ></s-json-schema-form>
+          <code class="${this.cls('_save-values-form-code')}">
+            ${JSON.stringify((_a = this.currentComponent) === null || _a === void 0 ? void 0 : _a.values, null, 2)}
+          </code>
+          <input
+            type="submit"
+            class="button -full"
+            value=${__i18n('Save values')}
+          />
+        </form>
+      </div>
+    `;
     }
     _renderEditor() {
         var _a, _b, _c;
@@ -576,6 +755,10 @@ export default class FactoryElement extends __LitElement {
       ${this._renderTopbar()} ${this._renderCommandPanel()}
       ${this._renderSidebar()} ${this._renderEditor()}
       ${this._renderBottombar()}
+      ${this._currentAction === 'saveValues'
+            ? this._renderSaveValuesForm()
+            : ''}
+      ${this._renderNotifications()}
     `;
     }
 }
@@ -592,9 +775,15 @@ __decorate([
     property({ type: String })
 ], FactoryElement.prototype, "commandPanelHotkey", void 0);
 __decorate([
+    property({ type: String })
+], FactoryElement.prototype, "darkModeClass", void 0);
+__decorate([
     state()
     // @ts-ignore
 ], FactoryElement.prototype, "specs", void 0);
+__decorate([
+    state()
+], FactoryElement.prototype, "_notifications", void 0);
 __decorate([
     state()
 ], FactoryElement.prototype, "_currentComponent", void 0);
@@ -604,5 +793,11 @@ __decorate([
 __decorate([
     state()
 ], FactoryElement.prototype, "_currentMediaQuery", void 0);
-FactoryElement.define('s-factory', FactoryElement);
+__decorate([
+    state()
+], FactoryElement.prototype, "_currentAction", void 0);
+__decorate([
+    state()
+], FactoryElement.prototype, "_state", void 0);
+FactoryElement.define('s-factory');
 //# sourceMappingURL=FactoryElement.js.map

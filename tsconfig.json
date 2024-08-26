@@ -15,6 +15,7 @@
     "target": "es6",
     "module": "nodenext",
     "sourceMap": true,
+    "resolveJsonModule": true,
     "declaration": true,
     "esModuleInterop": true,
     "experimentalDecorators": true,

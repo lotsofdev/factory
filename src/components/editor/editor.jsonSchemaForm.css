@@ -78,7 +78,7 @@
 
     &:hover,
     &:has(.s-factory-json-schema-form_values-item:hover) {
-      border-left: 1px solid s-color(accent);
+      border-left: 1px solid s-color(accent, --alpha 0.2);
     }
   }
 

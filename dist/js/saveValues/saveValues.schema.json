@@ -1,0 +1,17 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "saveValues",
+    "title": "Save values",
+    "description": "Simply save the actual component values to use them later",
+    "type": "object",
+    "properties": {
+        "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Unique name to identify the saved values",
+            "minLength": 5,
+            "placeholder": "Complete with video and slider",
+            "autofocus": true
+        }
+    }
+}

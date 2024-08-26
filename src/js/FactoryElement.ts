@@ -1,18 +1,28 @@
 import __LitElement from '@lotsof/lit-element';
 
+import { unsafeHTML } from 'lit/directives/unsafe-html.js';
+
 import __AdvancedSelectElement from '@lotsof/advanced-select-element';
 
 import { __i18n } from '@lotsof/i18n';
+
+import __logoFactory from './assets/logoFactory.js';
 
 import { __isInIframe } from '@lotsof/sugar/is';
 import { __set } from '@lotsof/sugar/object';
 import { __upperFirst } from '@lotsof/sugar/string';
 
-import { __iframeAutoSize, __injectHtml } from '@lotsof/sugar/dom';
+import {
+  __getFormValues,
+  __iframeAutoSize,
+  __injectHtml,
+} from '@lotsof/sugar/dom';
 
 import '@lotsof/json-schema-form';
 
 import __logos from './logos.js';
+
+import __saveComponentValuesSchema from './saveValues/saveValues.schema.json' assert { type: 'json' };
 
 import { html } from 'lit';
 import { property, state } from 'lit/decorators.js';
@@ -21,12 +31,16 @@ import {
   TAdvancedSelectElementItem,
   TAdvancedSelectElementItemsFunctionApi,
 } from '@lotsof/advanced-select-element';
+import { __hotkey } from '@lotsof/sugar/keyboard';
+import { THotkeySettings } from '../../../sugar/src/js/keyboard/hotkey.js';
 import '../../src/css/FactoryElement.css';
 import {
   TFactoryComponent,
   TFactoryComponentJson,
   TFactoryMediaQuery,
+  TFactoryNotification,
   TFactorySpecs,
+  TFactoryState,
   TFactoryUpdateObject,
 } from '../shared/factory.types.js';
 
@@ -41,11 +55,17 @@ export default class FactoryElement extends __LitElement {
   public mediaQuery: string = 'desktop';
 
   @property({ type: String })
-  public commandPanelHotkey: string = 'ctrl+p';
+  public commandPanelHotkey: string = 'cmd+p';
+
+  @property({ type: String })
+  public darkModeClass: string = '-dark';
 
   @state()
   // @ts-ignore
   public specs: TFactorySpecs = {};
+
+  @state()
+  public _notifications: TFactoryNotification[] = [];
 
   @state()
   public _currentComponent: TFactoryComponent | null = null;
@@ -56,11 +76,18 @@ export default class FactoryElement extends __LitElement {
   @state()
   public _currentMediaQuery: string = '';
 
+  @state()
+  public _currentAction: 'saveValues' | null = null;
+
+  @state()
+  protected _state: TFactoryState = {};
+
   private _$iframe?: HTMLIFrameElement;
   private _$canvas?: HTMLDivElement;
 
   constructor() {
-    super();
+    super('s-factory');
+    this.saveState = true;
   }
 
   public get currentEngine(): string | undefined {
@@ -77,6 +104,12 @@ export default class FactoryElement extends __LitElement {
     }
 
     return matches?.[1];
+  }
+
+  public get $commandPanel(): __AdvancedSelectElement {
+    return this.querySelector(
+      '#s-factory-command-panel',
+    ) as __AdvancedSelectElement;
   }
 
   public get currentComponent(): TFactoryComponentJson | undefined {
@@ -114,7 +147,7 @@ export default class FactoryElement extends __LitElement {
   private _updateMediaQueries(): void {
     // get the computed style of the document (iframe)
     const style = this._$iframe?.contentWindow?.getComputedStyle(
-      this.$iframeDocument?.documentElement as Element,
+      this.$iframeDocument?.body as Element,
     );
 
     // try to get the media queries from the css variables (sugarcss)
@@ -186,96 +219,131 @@ export default class FactoryElement extends __LitElement {
 
     // init command panel
     this._initCommandPanel();
+
+    // restore the ui mode (light/dark)
+    this._restoreUiMode();
   }
 
   private _initCommandPanel(): void {
-    __AdvancedSelectElement.define(
-      's-factory-command-panel',
-      __AdvancedSelectElement,
-      {
-        items: (api: TAdvancedSelectElementItemsFunctionApi) => {
-          switch (true) {
-            case api.search?.startsWith('/'):
-              const items: TAdvancedSelectElementItem[] = [];
+    __AdvancedSelectElement.define('s-factory-command-panel', {
+      items: (api: TAdvancedSelectElementItemsFunctionApi) => {
+        switch (true) {
+          case api.search?.startsWith('/'):
+            const items: TAdvancedSelectElementItem[] = [];
 
-              for (const [id, component] of Object.entries(
-                this.specs.components,
-              )) {
-                for (let engine of component.engines) {
-                  items.push({
-                    id: `/${id}/${engine}`,
-                    value: `/${id}/${engine}`,
-                    label: `${__upperFirst(component.name)} - ${engine}`,
-                    preventSet: true,
-                    engine,
-                  });
-                }
-              }
-
-              return items;
-              break;
-            case api.search?.startsWith('@'):
-              return Object.entries(this.mediaQueries).map(([name, query]) => {
-                return {
-                  id: `@${name}`,
-                  value: `@${name}`,
+            for (const [id, component] of Object.entries(
+              this.specs.components,
+            )) {
+              for (let engine of component.engines) {
+                items.push({
+                  id: `/${id}/${engine}`,
+                  value: `/${id}/${engine}`,
+                  label: `<div class="${this.cls('_command-panel-component')}">
+                        <h3 class="${this.cls(
+                          '_command-panel-component-name',
+                        )}">${__upperFirst(component.name)}</span>
+                        <h4 class="${this.cls(
+                          '_command-panel-component-engine',
+                        )}">${engine}</h4>
+                        ${__logos[engine] || ''}
+                      </div>`,
                   preventSet: true,
-                  label: `${__upperFirst(query.name)} - ${query.min}px - ${
-                    query.max
-                  }px`,
+                  engine,
+                });
+              }
+            }
+
+            return items;
+            break;
+          case api.search?.startsWith('@'):
+            return Object.entries(this.mediaQueries).map(([name, query]) => {
+              return {
+                id: `@${name}`,
+                value: `@${name}`,
+                preventSet: true,
+                label: `${__upperFirst(query.name)} - ${query.min}px - ${
+                  query.max
+                }px`,
+              };
+            });
+
+            break;
+          case api.search?.startsWith('!'):
+            return Object.entries(this.currentComponent.engines).map(
+              ([idx, name]) => {
+                return {
+                  id: `!${this.currentComponent.name}/${name}`,
+                  value: `!${this.currentComponent.name}/${name}`,
+                  preventSet: true,
+                  label: `${__upperFirst(name as string)}`,
                 };
-              });
+              },
+            );
 
-              break;
-            case api.search?.startsWith('!'):
-              return Object.entries(this.currentComponent.engines).map(
-                ([idx, name]) => {
-                  return {
-                    id: `!${this.currentComponent.name}/${name}`,
-                    value: `!${this.currentComponent.name}/${name}`,
-                    preventSet: true,
-                    label: `${__upperFirst(name as string)}`,
-                  };
-                },
-              );
+            break;
+          case api.search?.startsWith('<'):
+            return Object.entries(this.currentComponent.savedValues).map(
+              ([key, savedData]) => {
+                return {
+                  id: `<${key}`,
+                  value: `<${key}`,
+                  preventSet: true,
+                  label: (<any>savedData).name,
+                };
+              },
+            );
+            break;
+          default:
+            return [
+              {
+                id: '/',
+                value: '/',
+                preventClose: true,
+                preventSelect: true,
+                label: `<span class="s-factory-command-panel_prefix"
+                      >/</span
+                    >${__i18n('Components')}`,
+              },
+              {
+                id: '!',
+                value: '!',
+                preventClose: true,
+                preventSelect: true,
+                label: `<span class="s-factory-command-panel_prefix"
+                      >!</span
+                    >${__i18n('Switch engine')}`,
+              },
+              {
+                id: '@',
+                value: '@',
+                preventClose: true,
+                preventSelect: true,
+                label: `<span class="s-factory-command-panel_prefix"
+                      >@</span
+                    >${__i18n('Media queries')}`,
+              },
+              {
+                id: '<',
+                value: '<',
+                preventClose: true,
+                preventSelect: true,
+                label: `<span class="s-factory-command-panel_prefix"
+                      >&lt;</span
+                    >${__i18n('Load values')}`,
+              },
+              {
+                id: '>',
+                value: '>',
+                label: `<span class="s-factory-command-panel_prefix"
+                      >&gt;</span
+                    >${__i18n('Save values')}`,
+              },
+            ];
 
-              break;
-            default:
-              return [
-                {
-                  id: '/',
-                  value: '/',
-                  preventClose: true,
-                  preventSelect: true,
-                  label: `<span class="s-factory-command-panel_prefix">/</span>${__i18n(
-                    'Components',
-                  )}`,
-                },
-                {
-                  id: '!',
-                  value: '!',
-                  preventClose: true,
-                  preventSelect: true,
-                  label: `<span class="s-factory-command-panel_prefix">!</span>${__i18n(
-                    'Switch engine',
-                  )}`,
-                },
-                {
-                  id: '@',
-                  value: '@',
-                  preventClose: true,
-                  preventSelect: true,
-                  label: `<span class="s-factory-command-panel_prefix">@</span>${__i18n(
-                    'Media queries',
-                  )}`,
-                },
-              ];
-
-              break;
-          }
-        },
+            break;
+        }
       },
-    );
+    });
   }
 
   private _initListeners(context: Document): void {
@@ -303,6 +371,79 @@ export default class FactoryElement extends __LitElement {
           break;
       }
     });
+
+    const hotkeySettings: Partial<THotkeySettings> = {
+      ctx: context,
+    };
+    __hotkey(
+      'escape',
+      (e) => {
+        this._currentAction = null;
+      },
+      hotkeySettings,
+    );
+    __hotkey(
+      'cmd+shift+p',
+      (e) => {
+        this.$commandPanel?.setSearch('');
+        this.$commandPanel?.focus();
+      },
+      hotkeySettings,
+    );
+
+    __hotkey(
+      'cmd+p',
+      (e) => {
+        this.$commandPanel?.setSearch('/');
+        this.$commandPanel?.focus();
+      },
+      hotkeySettings,
+    );
+    __hotkey(
+      'cmd+g',
+      (e) => {
+        this.$commandPanel?.setSearch('@');
+        this.$commandPanel?.focus();
+      },
+      hotkeySettings,
+    );
+    __hotkey(
+      'cmd+e',
+      (e) => {
+        this.$commandPanel?.setSearch('!');
+        this.$commandPanel?.focus();
+      },
+      hotkeySettings,
+    );
+    __hotkey(
+      'cmd+l',
+      (e) => {
+        this.$commandPanel?.setSearch('<');
+        this.$commandPanel?.focus();
+      },
+      hotkeySettings,
+    );
+    __hotkey(
+      'cmd+s',
+      (e) => {
+        this._currentAction = 'saveValues';
+      },
+      hotkeySettings,
+    );
+    __hotkey(
+      'cmd+r',
+      (e) => {
+        this.randomizeComponentValues(this.currentComponentId as string);
+      },
+      hotkeySettings,
+    );
+    __hotkey(
+      'cmd+m',
+      (e) => {
+        this.toggleUiMode();
+      },
+      hotkeySettings,
+    );
   }
 
   private _initEnvironment(): void {
@@ -409,7 +550,8 @@ export default class FactoryElement extends __LitElement {
   }
 
   private async _updateComponent(id: string, engine?: string): Promise<void> {
-    if (!this.currentComponent) {
+    const component: TFactoryComponent = this.specs.components[id];
+    if (!component) {
       return;
     }
 
@@ -424,11 +566,15 @@ export default class FactoryElement extends __LitElement {
         }),
       }),
       json = await request.json();
-    this.currentComponent.values = json.values;
+    component.values = json.values;
 
     this._setIframeContent(json.html);
 
     this.requestUpdate();
+  }
+
+  public getComponentById(id: string): TFactoryComponent | undefined {
+    return this.specs.components[id];
   }
 
   public selectComponent(id: string, engine?: string): void {
@@ -443,8 +589,78 @@ export default class FactoryElement extends __LitElement {
     this._currentComponentId = id;
     // render the new component
     this._updateComponent(id, engine);
-    // update the factory
-    this.requestUpdate();
+  }
+
+  public setComponentValues(id: string, values: any): void {
+    const component = this.getComponentById(id);
+    if (!component) {
+      return;
+    }
+    component.values = values;
+    this._updateComponent(component.name, this.currentEngine);
+  }
+
+  public toggleUiMode(): void {
+    this.setUiMode(this.state.mode === 'dark' ? 'light' : 'dark');
+  }
+
+  private _restoreUiMode(): void {
+    if (this.state.mode) {
+      this.setUiMode(this.state.mode);
+    }
+  }
+
+  public setUiMode(mode: 'light' | 'dark'): void {
+    this.setState({ mode });
+    if (mode === 'light') {
+      document.body.classList.remove('-dark');
+    } else {
+      document.body.classList.add('-dark');
+    }
+  }
+
+  public randomizeComponentValues(id: string): void {
+    const component = this.getComponentById(id);
+    if (!component) {
+      return;
+    }
+    // update the component with empty values
+    component.values = {};
+    this._updateComponent(component.name, this.currentEngine);
+  }
+
+  private async _saveComponentValues(
+    component: TFactoryComponent,
+    name: String,
+  ): Promise<void> {
+    // post the new values to the server
+    const request = await fetch(`/api/saveValues/${component.name}`, {
+        method: 'POST',
+        body: JSON.stringify({
+          name,
+          values: component.values,
+        }),
+      }),
+      json = await request.json();
+
+    if (json.errors) {
+      console.error(json.errors);
+      return;
+    }
+
+    // update specs
+    await this._fetchSpecs();
+
+    // remove the popin
+    this._currentAction = null;
+
+    // @TODO   send a notification
+    this._sendNotification({
+      id: 'valuesSaved',
+      message: `Values saved as ${name}`,
+      type: 'success',
+      timeout: 2000,
+    });
   }
 
   public selectMediaQuery(name: string): void {
@@ -460,6 +676,31 @@ export default class FactoryElement extends __LitElement {
       this.currentComponentId as string,
       this.currentEngine,
     );
+  }
+
+  private _handleCommandPanelSelect(item: TAdvancedSelectElementItem): void {
+    let engine: string, id: string;
+
+    switch (true) {
+      case item.value.startsWith('/'):
+      case item.value.startsWith('!'):
+        [id, engine] = item.value.slice(1).split('/');
+        this.selectComponent(id, engine);
+        break;
+      case item.value.startsWith('@'):
+        const mediaQuery = item.value.slice(1);
+        this.selectMediaQuery(mediaQuery);
+        break;
+      case item.value.startsWith('>'):
+        this._currentAction = 'saveValues';
+        break;
+      case item.value.startsWith('<'):
+        this.setComponentValues(
+          this.currentComponent.name,
+          this.currentComponent.savedValues[item.value.slice(1)]?.values,
+        );
+        break;
+    }
   }
 
   private _renderComponents(): any {
@@ -497,7 +738,7 @@ export default class FactoryElement extends __LitElement {
                                 this.selectComponent(id, engine);
                               }}
                             >
-                              ${__logos[engine] || engine}
+                              ${unsafeHTML(__logos[engine] || engine)}
                             </li>
                           `,
                         )}
@@ -510,6 +751,19 @@ export default class FactoryElement extends __LitElement {
           `
         : ''}
     `;
+  }
+
+  private async _sendNotification(
+    notification: TFactoryNotification,
+  ): Promise<void> {
+    this._notifications.push(notification);
+    if (notification.timeout) {
+      setTimeout(() => {
+        this._notifications = this._notifications.filter(
+          (n) => n !== notification,
+        );
+      }, notification.timeout);
+    }
   }
 
   private _renderSidebar(): any {
@@ -546,76 +800,7 @@ export default class FactoryElement extends __LitElement {
 
   private _renderTopbar(): any {
     return html`<nav class="${this.cls('_topbar')}">
-      <h1 class="${this.cls('_topbar-title')}">
-        <svg
-          width="40"
-          height="40"
-          viewBox="0 0 40 40"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M10 40H40V40C40 34.4772 35.5228 30 30 30H10V40Z"
-            fill="url(#paint0_radial_3_41)"
-            fill-opacity="0.3"
-          />
-          <path
-            d="M0 30H20V35C20 37.7614 17.7614 40 15 40H10C4.47715 40 0 35.5228 0 30V30Z"
-            fill="#FFD500"
-          />
-          <path
-            d="M0 5C0 2.23858 2.23858 0 5 0H10C15.5228 0 20 4.47715 20 10V10H0V5Z"
-            fill="#FFD500"
-          />
-          <path
-            d="M10 10C10 4.47715 14.4772 0 20 0H35C37.7614 0 40 2.23858 40 5V10H10V10Z"
-            fill="url(#paint1_radial_3_41)"
-          />
-          <path
-            d="M20 25H40V20C40 17.2386 37.7614 15 35 15H20V25Z"
-            fill="#FFD500"
-          />
-          <path
-            d="M0 15H30V15C30 20.5228 25.5228 25 20 25H0V15Z"
-            fill="url(#paint2_radial_3_41)"
-          />
-          <defs>
-            <radialGradient
-              id="paint0_radial_3_41"
-              cx="0"
-              cy="0"
-              r="1"
-              gradientUnits="userSpaceOnUse"
-              gradientTransform="translate(40 40) rotate(-162.429) scale(31.4682 94.4047)"
-            >
-              <stop stop-color="#E7DFBD" />
-              <stop offset="1" stop-color="#FBF6E5" />
-            </radialGradient>
-            <radialGradient
-              id="paint1_radial_3_41"
-              cx="0"
-              cy="0"
-              r="1"
-              gradientUnits="userSpaceOnUse"
-              gradientTransform="translate(10) rotate(18.4349) scale(31.6228 94.8683)"
-            >
-              <stop stop-color="#FFFCEE" />
-              <stop offset="1" stop-color="#E3DBB5" />
-            </radialGradient>
-            <radialGradient
-              id="paint2_radial_3_41"
-              cx="0"
-              cy="0"
-              r="1"
-              gradientUnits="userSpaceOnUse"
-              gradientTransform="translate(-2.01166e-06 25) rotate(-18.4349) scale(31.6228 94.8683)"
-            >
-              <stop stop-color="#E4DBB6" />
-              <stop offset="1" stop-color="#FBF7E6" />
-            </radialGradient>
-          </defs>
-        </svg>
-      </h1>
+      <h1 class="${this.cls('_topbar-title')}">${__logoFactory}</h1>
       ${this.currentComponent
         ? html`<div class="${this.cls('_topbar-component')}">
             <h2 class="${this.cls('_topbar-component-name')}">
@@ -626,16 +811,36 @@ export default class FactoryElement extends __LitElement {
             </p>
             <p class="${this.cls('_topbar-component-engine')}">
               ${__upperFirst(this.currentEngine as string)}
-              ${__logos[this.currentEngine] || this.currentEngine}
+              ${unsafeHTML(__logos[this.currentEngine] || this.currentEngine)}
             </p>
           </div>`
         : ''}
     </nav>`;
   }
 
+  private _renderMode(): any {
+    return html`
+      <button
+        class="${this.cls('_bottombar-mode')} ${this.state.mode === 'dark'
+          ? '-active'
+          : ''}"
+        @pointerup=${() => {
+          this.toggleUiMode();
+        }}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
+          <!--!Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
+          <path
+            d="M223.5 32C100 32 0 132.3 0 256S100 480 223.5 480c60.6 0 115.5-24.2 155.8-63.4c5-4.9 6.3-12.5 3.1-18.7s-10.1-9.7-17-8.5c-9.8 1.7-19.8 2.6-30.1 2.6c-96.9 0-175.5-78.8-175.5-176c0-65.8 36-123.1 89.3-153.3c6.1-3.5 9.2-10.5 7.7-17.3s-7.3-11.9-14.3-12.5c-6.3-.5-12.6-.8-19-.8z"
+          />
+        </svg>
+      </button>
+    `;
+  }
+
   private _renderBottombar(): any {
     return html`<nav class="${this.cls('_bottombar')}">
-      ${this._renderMediaQueries()}
+      ${this._renderMediaQueries()} ${this._renderMode()}
     </nav>`;
   }
 
@@ -647,27 +852,78 @@ export default class FactoryElement extends __LitElement {
         mountWhen="direct"
         hotkey=${this.commandPanelHotkey}
         @sFactoryCommandPanel.select=${(e) => {
-          let engine: string, id: string;
-          switch (true) {
-            case e.detail.item.value.startsWith('/'):
-            case e.detail.item.value.startsWith('!'):
-              [id, engine] = e.detail.item.value.slice(1).split('/');
-              this.selectComponent(id, engine);
-              break;
-            case e.detail.item.value.startsWith('@'):
-              const mediaQuery = e.detail.item.value.slice(1);
-              this.selectMediaQuery(mediaQuery);
-              break;
-          }
+          this._handleCommandPanelSelect(e.detail.item);
         }}
       >
         <input
           type="text"
-          class="s-input"
+          class="form-input"
           placeholder=${__i18n(`Command panel (${this.commandPanelHotkey})`)}
         />
       </s-factory-command-panel>
     </nav>`;
+  }
+
+  private _renderNotifications(): any {
+    if (!this._notifications.length) {
+      return;
+    }
+
+    return html`
+      <div class="${this.cls('_notifications')}">
+        <ul class="${this.cls('_notifications-list')}">
+          ${this._notifications.map(
+            (notification) => html`
+              <li
+                class="${this.cls('_notifications-item')} ${notification.type
+                  ? `-${notification.type}`
+                  : ''}"
+              >
+                <span class="${this.cls('_notifications-message')}">
+                  ${notification.message}
+                </span>
+              </li>
+            `,
+          )}
+      </div>
+    `;
+  }
+
+  private _renderSaveValuesForm(): any {
+    return html`
+      <div class="popin">
+        <form
+          class="${this.cls('_save-values-form')} form"
+          @submit=${(e) => {
+            e.preventDefault();
+
+            // make sure form is valid
+            if (!e.target.checkValidity()) {
+              return;
+            }
+
+            // save the values
+            const formValues = __getFormValues(e.target);
+            this._saveComponentValues(this.currentComponent, formValues.name);
+          }}
+        >
+          <s-json-schema-form
+            id="s-factory-save-values-form"
+            .formClasses=${true}
+            .schema=${__saveComponentValuesSchema}
+            .values=${{}}
+          ></s-json-schema-form>
+          <code class="${this.cls('_save-values-form-code')}">
+            ${JSON.stringify(this.currentComponent?.values, null, 2)}
+          </code>
+          <input
+            type="submit"
+            class="button -full"
+            value=${__i18n('Save values')}
+          />
+        </form>
+      </div>
+    `;
   }
 
   private _renderEditor(): any {
@@ -698,8 +954,12 @@ export default class FactoryElement extends __LitElement {
       ${this._renderTopbar()} ${this._renderCommandPanel()}
       ${this._renderSidebar()} ${this._renderEditor()}
       ${this._renderBottombar()}
+      ${this._currentAction === 'saveValues'
+        ? this._renderSaveValuesForm()
+        : ''}
+      ${this._renderNotifications()}
     `;
   }
 }
 
-FactoryElement.define('s-factory', FactoryElement);
+FactoryElement.define('s-factory');

@@ -2,8 +2,6 @@
   position: absolute;
   top: var(--s-factory-side-padding);
   left: 50%;
-  /* right: var(--s-factory-side-padding); */
-  height: 50px;
   display: flex;
   align-items: center;
   z-index: 100;

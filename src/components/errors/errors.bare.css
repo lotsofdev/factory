@@ -1,0 +1,21 @@
+.errors {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: s-space(10);
+  flex-grow: 1;
+  flex-shrink: 0;
+  justify-content: stretch;
+  margin-block-start: s-space(10);
+  background: s-color(error, --alpha 0.1);
+  @s-radius;
+}
+.error {
+  display: block;
+  width: 100%;
+  flex-grow: 1;
+  padding: s-space(10) s-space(20);
+  color: s-color(error, --alpha 0.5);
+  font-size: s-size(15);
+  @s-radius;
+}

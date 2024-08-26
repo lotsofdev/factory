@@ -32,22 +32,22 @@ foreach ($files as $file) {
 // init the router
 $router = new \Factory\Router();
 
-$router->addRoute('GET', '/component/:name/:engine?', function (string $name) {
+$router->addRoute('GET', '/component/:id/:engine?', function (string $id) {
     global $config;
 
     // try to find the component
-    if (!file_exists($config->components->rootDir . '/' . $name)) {
-        throw new \Exception('Component "' . $name . '" not found');
+    if (!file_exists($config->components->rootDir . '/' . $id)) {
+        throw new \Exception('Component "' . $id . '" not found');
     }
 
     print \Components\Renderer\render('component.component', [
-        'name' => $name,
+        'name' => $id,
         'ui' => $config->ui
     ]);
     exit;
 });
 
-$router->addRoute('POST', '/api/render/:name/:engine', function (string $name, ?string $engine = '') {
+$router->addRoute('POST', '/api/render/:id/:engine', function (string $id, ?string $engine = '') {
 
     global $config;
     global $components;
@@ -57,9 +57,10 @@ $router->addRoute('POST', '/api/render/:name/:engine', function (string $name, ?
     $postedData = json_decode($rawData);
 
     // get the component
-    $component = $components->getComponent($name);
+    $component = $components->getComponent($id);
     $engines = $component->getEngines();
     $mocks = $component->getMocks();
+    $savedValues = $component->getSavedValues();
 
     if (isset($postedData->values)) {
         $component->setValues($postedData->values);
@@ -72,7 +73,7 @@ $router->addRoute('POST', '/api/render/:name/:engine', function (string $name, ?
 
     // check if the engine is supported
     if (!in_array($engine, $engines)) {
-        throw new \Exception('Engine "' . $engine . '" not supported on the component "' . $name . '". Here are the supported engines: ' . implode(', ', $engines));
+        throw new \Exception('Engine "' . $engine . '" not supported on the component "' . $id . '". Here are the supported engines: ' . implode(', ', $engines));
     }
 
     // preparing mock data
@@ -85,7 +86,7 @@ $router->addRoute('POST', '/api/render/:name/:engine', function (string $name, ?
                     $values = require $mocks[$engine];
                     $component->setValues($values);
                 } else {
-                    throw new \Exception('No mock data found for the engine "' . $engine . '" on the component "' . $name . '".');
+                    throw new \Exception('No mock data found for the engine "' . $engine . '" on the component "' . $id . '".');
                 }
                 break;
             case 'react':
@@ -108,6 +109,8 @@ $router->addRoute('POST', '/api/render/:name/:engine', function (string $name, ?
             break;
     }
 
+    // $component->getSavedValues();
+
     // add the assets from the project
     foreach ($config->project->assets as $asset) {
 
@@ -124,6 +127,35 @@ $router->addRoute('POST', '/api/render/:name/:engine', function (string $name, ?
 
     print json_encode((object) [
         'html' => $html,
+        'values' => $component->getValues(),
+        'savedValues' => $savedValues
+    ]);
+
+    exit;
+});
+
+$router->addRoute('POST', '/api/saveValues/:id', function (string $id) {
+
+    global $config;
+    global $components;
+
+    // get the raw POST data
+    $rawData = file_get_contents("php://input");
+    $postedData = json_decode($rawData);
+
+    // get the component
+    $component = $components->getComponent($id);
+
+    // save the values
+    $filePath = $component->saveValues($postedData->values, $postedData->name);
+
+    // set the values in the component
+    if (isset($postedData->values)) {
+        $component->setValues($postedData->values);
+    }
+
+    print json_encode((object) [
+        'path' => $filePath,
         'values' => $component->getValues()
     ]);
 

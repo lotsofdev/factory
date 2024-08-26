@@ -1,4 +1,5 @@
 @import './form.bare.css';
+@import './form.jsonSchemaForm.css';
 
 .form {
 }
@@ -6,7 +7,7 @@
 .form-input,
 .form-textarea {
   &::placeholder {
-    color: s-color(main, --desaturate 50 --alpha 0.3);
+    color: s-color(main, placeholder);
   }
 }
 
@@ -15,6 +16,7 @@
   border: solid 1px s-color(main, border);
   color: s-color(main, form);
   font-size: s-size(18);
+  line-height: s-size(18);
   @s-radius;
 
   &:focus {

@@ -1,0 +1,9 @@
+.s-factory_logo {
+  [fill='black'] {
+    fill: s-color(main, --desaturate 40 --lighten 100);
+  }
+
+  .-accent {
+    fill: s-color(accent);
+  }
+}

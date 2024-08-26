@@ -1,9 +1,16 @@
 .form {
+  &.-invalid {
+    input[type='submit'] {
+      pointer-events: none;
+      opacity: 0.3;
+    }
+  }
 }
 
 .form-input,
 .form-select {
   padding: s-space(10) s-space(20);
+  width: 100%;
 }
 
 .form-checkbox {

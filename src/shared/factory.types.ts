@@ -2,6 +2,11 @@ import { TComponentsSettings } from '@lotsof/components';
 
 import { TComponentsComponentJson } from '@lotsof/components';
 
+export type TFactoryState = {
+  mode?: 'light' | 'dark';
+  media?: string;
+};
+
 export type TFactoryServerConfig = {
   hostname: string;
   port: number;
@@ -44,6 +49,13 @@ export type TFactoryProjectConfig = {
   assets: Record<string, string>;
 };
 
+export type TFactoryNotification = {
+  id: string;
+  message: string;
+  type: 'success' | 'info' | 'warning' | 'error';
+  timeout: number;
+};
+
 export type TFactoryConfig = {
   components: TComponentsSettings;
   server: TFactoryServerConfig;
@@ -64,6 +76,7 @@ export type TFactoryComponent = {
   description?: string;
   schema: JSONSchema7;
   values: any;
+  savedValues: any;
   $component: Element;
 };
 

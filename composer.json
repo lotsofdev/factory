@@ -1,7 +1,7 @@
 {
   "name": "lotsof/factory",
   "description": "Useful components factory UI that allows you to build and test your own components easily",
-  "version": "1.0.0",
+  "version": "1.0.0-alpha.0",
   "type": "library",
   "autoload": {
     "files": [
@@ -24,7 +24,7 @@
   ],
   "require": {
     "php": ">=8.0",
-    "lotsof/sugar": "^1.0.0",
+    "lotsof/sugar": "^1.0.0@alpha",
     "eftec/bladeone": "^4.13",
     "twig/twig": "^3.11"
   }
